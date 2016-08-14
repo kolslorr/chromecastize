@@ -10,14 +10,14 @@ SUPPORTED_GFORMATS=('MPEG-4' 'Matroska')
 UNSUPPORTED_GFORMATS=('BDAV' 'AVI' 'Flash Video')
 
 SUPPORTED_VCODECS=('AVC')
-UNSUPPORTED_VCODECS=('MPEG-4 Visual' 'xvid' 'MPEG Video')
+UNSUPPORTED_VCODECS=('MPEG-4 Visual' 'xvid' 'MPEG Video' 'HEVC')
 
 SUPPORTED_ACODECS=('AAC' 'MPEG Audio' 'Vorbis' 'Ogg')
 UNSUPPORTED_ACODECS=('AC-3' 'DTS' 'PCM')
 
 DEFAULT_VCODEC=h264
 DEFAULT_ACODEC=libvorbis
-DEFAULT_GFORMAT=mkv
+DEFAULT_GFORMAT=mp4
 
 #############
 # FUNCTIONS #
@@ -104,7 +104,7 @@ on_failure() {
 	FILENAME="$1"
 	echo "- failed to convert '$FILENAME' (or conversion has been interrupted)"
 	echo "- deleting partially converted file..."
-	rm "$FILENAME.mkv" &> /dev/null
+	rm "$FILENAME.$OUTPUT_GFORMAT" &> /dev/null
 }
 
 process_file() {
@@ -157,6 +157,9 @@ process_file() {
                 echo "- file should be playable by Chromecast!"
 		mark_as_good "$FILENAME"
 	else
+		if [ "$OUTPUT_GFORMAT" = "ok" ]; then
+			OUTPUT_GFORMAT=$EXTENSION
+		fi
 		echo "- video length: `mediainfo --Inform="General;%Duration/String3%" "$FILENAME"`"
 		$FFMPEG -loglevel error -stats -i "$FILENAME" -map 0 -scodec copy -vcodec "$OUTPUT_VCODEC" -acodec "$OUTPUT_ACODEC" "$FILENAME.$OUTPUT_GFORMAT" && on_success "$FILENAME" || on_failure "$FILENAME"
 		echo ""
